@@ -1,0 +1,1 @@
+console.log('NullThreat service worker started')
