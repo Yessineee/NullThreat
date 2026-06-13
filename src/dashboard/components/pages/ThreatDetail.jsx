@@ -135,7 +135,7 @@ export default function ThreatDetail({ scan, onBack }) {
                 <span className="font-semibold text-foreground">{scan.total}</span>
                 {' '}engines flagged this file
               </p>
-              {scan.total > 0 && vtUrl && (
+              {vtUrl && (
                 <a
                     href={vtUrl}
                     target="_blank"

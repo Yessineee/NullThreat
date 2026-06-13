@@ -1,0 +1,1 @@
+// MetaDefender integration — planned for future backend proxy implementation
