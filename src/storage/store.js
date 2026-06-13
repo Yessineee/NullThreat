@@ -1,3 +1,5 @@
+/* global chrome */
+
 const HISTORY_KEY = 'scan_history'
 const SETTINGS_KEY = 'settings'
 
