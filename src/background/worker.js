@@ -62,32 +62,32 @@ chrome.downloads.onChanged.addListener(async (delta) => {
 })
 
 function notifyScanning(item) {
-  const filename = item.filename.split('\\').pop().split('/').pop()
+  const filename = getFilename(item)
   chrome.notifications.create(`scanning-${item.id}`, {
     type: 'basic',
     iconUrl: '/icons/icon48.png',
     title: 'NullThreat — Scanning',
-    message: `Scanning ${filename}…`,
+    message: `Scanning ${filename}...`,
     priority: 0,
   })
 }
 
 function notifyResult(item, result) {
-  const filename = item.filename.split('\\').pop().split('/').pop()
+  const filename = getFilename(item)
   chrome.notifications.clear(`scanning-${item.id}`)
 
   const messages = {
     clean: {
-      title: 'NullThreat — Clean ✅',
+      title: 'NullThreat — Clean',
       message: `${filename} is safe (0/${result.total} engines)`,
     },
     threat: {
-      title: 'NullThreat — Threat Detected 🚨',
+      title: 'NullThreat — Threat Detected',
       message: `${filename} flagged by ${result.malicious}/${result.total} engines`,
     },
     unknown: {
-      title: 'NullThreat — Unknown File ⚪',
-      message: `${filename} is not in VirusTotal's database`,
+      title: 'NullThreat — Unknown File',
+      message: `${filename} is not in VirusTotal database`,
     },
   }
 
@@ -103,7 +103,7 @@ function notifyResult(item, result) {
 }
 
 function notifyError(item) {
-  const filename = item.filename.split('\\').pop().split('/').pop()
+  const filename = getFilename(item)
   chrome.notifications.clear(`scanning-${item.id}`)
   chrome.notifications.create(`error-${item.id}`, {
     type: 'basic',
@@ -112,4 +112,8 @@ function notifyError(item) {
     message: `Could not scan ${filename}. Check your API key.`,
     priority: 0,
   })
+}
+
+function getFilename(item) {
+  return item.filename ? item.filename.split('\\').pop().split('/').pop() : (item.finalUrl || item.url).split('/').pop().split('?')[0]
 }
