@@ -1,6 +1,5 @@
 /* global chrome */
-import { sha256FromBlob } from '../utils/hash.js'
-import { scanByHash, scanByUrl } from './vtClient.js'
+import { scanByUrl } from './vtClient.js'
 import { enqueue } from './scanQueue.js'
 import { addScanResult, getSettings } from '../storage/store.js'
 
@@ -39,6 +38,10 @@ chrome.downloads.onChanged.addListener(async (delta) => {
     
 
   console.log('PDF detected, attempting scan...')
+  chrome.runtime.sendMessage({
+    type: 'SCAN_STARTED',
+    filename: getFilename(item),
+  }).catch(() => {}) 
   notifyScanning(item)
   try {
   const scanUrl = item.finalUrl || item.url
@@ -53,8 +56,18 @@ chrome.downloads.onChanged.addListener(async (delta) => {
     ...result,
   })
 
+  chrome.runtime.sendMessage({
+    type: 'SCAN_COMPLETE',
+    filename: getFilename(item),
+    result,
+  }).catch(() => {})
+
   notifyResult(item, result)
 } catch (err) {
+  chrome.runtime.sendMessage({
+    type: 'SCAN_ERROR',
+    filename: getFilename(item),
+  }).catch(() => {})
   console.error('Scan failed:', err.message)
   console.error('Full error:', err)
   notifyError(item)
