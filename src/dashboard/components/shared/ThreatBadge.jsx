@@ -1,5 +1,5 @@
-import { cn } from '../../lib/utils.js'
-import { ShieldCheck, ShieldAlert, ShieldQuestion } from 'lucide-react';
+import { ShieldCheck, ShieldAlert, ShieldQuestion } from 'lucide-react'
+import { cn } from '../../../lib/utils.js'
 
 const config = {
   clean: {
@@ -21,15 +21,19 @@ const config = {
 
 export default function ThreatBadge({ status, size = 'sm' }) {
   const { label, icon: Icon, classes } = config[status] || config.unknown
-
   return (
     <span className={cn(
       'inline-flex items-center gap-1 rounded-full border font-medium',
       size === 'sm' && 'text-[10px] px-2 py-0.5',
       size === 'md' && 'text-xs px-2.5 py-1',
+      size === 'lg' && 'text-sm px-3 py-1',
       classes
     )}>
-      <Icon className={size === 'sm' ? 'w-3 h-3' : 'w-3.5 h-3.5'} />
+      <Icon className={cn(
+        size === 'sm' && 'w-3 h-3',
+        size === 'md' && 'w-3.5 h-3.5',
+        size === 'lg' && 'w-4 h-4',
+      )} />
       {label}
     </span>
   )

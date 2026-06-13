@@ -14,6 +14,16 @@ export async function addScanResult(entry) {
   await chrome.storage.local.set({ [HISTORY_KEY]: history.slice(0, 200) })
 }
 
+export async function deleteEntry(scannedAt) {
+  const history = await getScanHistory()
+  const filtered = history.filter(e => e.scannedAt !== scannedAt)
+  await chrome.storage.local.set({ [HISTORY_KEY]: filtered })
+}
+
+export async function clearHistory() {
+  await chrome.storage.local.set({ [HISTORY_KEY]: [] })
+}
+
 export async function getSettings() {
   const result = await chrome.storage.sync.get(SETTINGS_KEY)
   return result[SETTINGS_KEY] || {

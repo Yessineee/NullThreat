@@ -1,6 +1,6 @@
 import { FileText, Clock } from 'lucide-react'
-import ThreatBadge from './ThreatBadge.jsx'
-import ThreatScore from './ThreatScore.jsx'
+import ThreatBadge from '../../dashboard/components/shared/ThreatBadge.jsx'
+import ThreatScore from '../../dashboard/components/shared/ThreatScore.jsx'
 
 function timeAgo(timestamp) {
   const diff = Date.now() - timestamp
