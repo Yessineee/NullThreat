@@ -28,7 +28,7 @@ export default function Sidebar({ currentPage, onNavigate }) {
 
   return (
     <aside className={cn(
-      'flex flex-col h-screen bg-card border-r border-border',
+      'flex flex-col h-screen bg-card border-r-2 border-border',
       'transition-all duration-300 ease-in-out flex-shrink-0',
       collapsed ? 'w-16' : 'w-60'
     )}>

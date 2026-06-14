@@ -96,11 +96,11 @@ export default function Popup() {
       <div className="px-4 py-3 flex flex-col gap-3">
         {/* Stats row */}
         <div className="grid grid-cols-2 gap-2">
-          <div className="bg-secondary rounded-lg p-3 border border-border">
+          <div className="bg-secondary rounded-lg p-3 border border-border shadow-sm">
             <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Total Scanned</p>
             <p className="text-xl font-mono font-semibold text-foreground mt-0.5">{totalScanned}</p>
           </div>
-          <div className="bg-secondary rounded-lg p-3 border border-border">
+          <div className="bg-secondary rounded-lg p-3 border border-border shadow-sm">
             <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Threats Found</p>
             <p className={cn(
               'text-xl font-mono font-semibold mt-0.5',

@@ -62,6 +62,8 @@ export default function Settings({ settings, updateSetting, clearHistory }) {
   const [newKey, setNewKey] = useState('')
   const [testStatus, setTestStatus] = useState(null) // null | 'testing' | 'ok' | 'fail'
   const [clearing, setClearing] = useState(false)
+  const [confirmClear, setConfirmClear] = useState(false)
+
 
   const maskedKey = settings?.apiKey
     ? '••••••••' + settings.apiKey.slice(-4)
@@ -89,9 +91,15 @@ export default function Settings({ settings, updateSetting, clearHistory }) {
   }
 
   async function handleClearHistory() {
+    if (!confirmClear) {
+      setConfirmClear(true)
+      setTimeout(() => setConfirmClear(false), 3000)
+      return
+    }
     setClearing(true)
     await clearHistory()
     setClearing(false)
+    setConfirmClear(false)
   }
 
   function handleExportJSON() {
@@ -107,7 +115,7 @@ export default function Settings({ settings, updateSetting, clearHistory }) {
   }
 
   return (
-    <div className="p-6 flex flex-col gap-4 max-w-2xl">
+      <div className="p-6 flex flex-col gap-4 max-w-3xl mx-auto w-full">
       {/* API Configuration */}
       <Section title="API Configuration">
         <SettingRow
@@ -215,10 +223,12 @@ export default function Settings({ settings, updateSetting, clearHistory }) {
           <button
             onClick={handleClearHistory}
             disabled={clearing}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-destructive/10 text-destructive text-xs font-medium hover:bg-destructive/20 transition-all"
+            className={cn('flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all',
+              confirmClear ? 'bg-destructive text-white hover:bg-destructive/90' : 'bg-destructive/10 text-destructive hover:bg-destructive/20'
+            )}
           >
             <Trash2 className="w-3.5 h-3.5" />
-            {clearing ? 'Clearing...' : 'Clear All'}
+            {clearing ? 'Clearing...' : confirmClear ? 'Click again to confirm' : 'Clear All'}
           </button>
         </SettingRow>
       </Section>
@@ -230,7 +240,7 @@ export default function Settings({ settings, updateSetting, clearHistory }) {
         </SettingRow>
         <SettingRow label="Source Code" description="View the project on GitHub">
           <a
-            href="https://github.com/Yessine05/NullThreat"
+            href="https://github.com/Yessineee/NullThreat"
             target="_blank"
             rel="noreferrer"
             className="flex items-center gap-1.5 text-xs text-brand-500 hover:text-brand-600 transition-colors"

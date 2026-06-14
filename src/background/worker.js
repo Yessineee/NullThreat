@@ -8,7 +8,6 @@ import { addScanResult, getSettings } from '../storage/store.js'
 const downloadCache = new Map()
 
 chrome.downloads.onCreated.addListener((item) => {
-  console.log('Download created:', item.id, item.filename, item.url)
   downloadCache.set(item.id, item)
 })
 
@@ -19,7 +18,6 @@ chrome.downloads.onChanged.addListener(async (delta) => {
   const item = downloadCache.get(delta.id)
 
   if (!item) {
-    console.log('Item not in cache for id:', delta.id)
     return
   }
 
@@ -32,12 +30,10 @@ chrome.downloads.onChanged.addListener(async (delta) => {
   const isPdf = item.mime === 'application/pdf' || item.url.toLowerCase().includes('.pdf') || item.finalUrl?.toLowerCase().includes('.pdf')
   
   if (!isPdf) {
-    console.log('Not a PDF, skipping')
     return
    }
     
 
-  console.log('PDF detected, attempting scan...')
   chrome.runtime.sendMessage({
     type: 'SCAN_STARTED',
     filename: getFilename(item),
@@ -79,27 +75,31 @@ function notifyScanning(item) {
   chrome.notifications.create(`scanning-${item.id}`, {
     type: 'basic',
     iconUrl: '/icons/icon48.png',
-    title: 'NullThreat — Scanning',
+    title: 'NullThreat: Scanning',
     message: `Scanning ${filename}...`,
     priority: 0,
   })
 }
 
-function notifyResult(item, result) {
+async function notifyResult(item, result) {
   const filename = getFilename(item)
   chrome.notifications.clear(`scanning-${item.id}`)
 
+  const { notifyOnClean } = await getSettings()
+  if (result.status === 'clean' && !notifyOnClean) return
+
+
   const messages = {
     clean: {
-      title: 'NullThreat — Clean',
+      title: 'NullThreat: Clean',
       message: `${filename} is safe (0/${result.total} engines)`,
     },
     threat: {
-      title: 'NullThreat — Threat Detected',
+      title: 'NullThreat:  Threat Detected',
       message: `${filename} flagged by ${result.malicious}/${result.total} engines`,
     },
     unknown: {
-      title: 'NullThreat — Unknown File',
+      title: 'NullThreat: Unknown File',
       message: `${filename} is not in VirusTotal database`,
     },
   }
