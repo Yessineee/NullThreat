@@ -18,7 +18,7 @@ const PAGE_META = {
 export default function Dashboard() {
   const [page, setPage] = useState('overview')
   const [selectedScan, setSelectedScan] = useState(null)
-  const { history, settings, stats, loading, updateSetting, clearHistory, deleteEntry, reload } = useDashboardData()
+  const { history, settings, stats, currentScan, loading, updateSetting, clearHistory, deleteEntry, reload } = useDashboardData()
 
   // Sync theme on mount
   useEffect(() => {
@@ -62,6 +62,7 @@ export default function Dashboard() {
             <Overview
               history={history}
               stats={stats}
+              currentScan={currentScan}
               onNavigate={navigate}
             />
           )}

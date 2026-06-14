@@ -13,6 +13,12 @@
     "default_popup": "src/popup/popup.html",
     "default_icon": "icons/icon48.png"
   },
+  "web_accessible_resources": [
+    {
+      "resources": ["src/dashboard/dashboard.html"],
+      "matches": ["<all_urls>"]
+    }
+  ],
   "icons": {
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"

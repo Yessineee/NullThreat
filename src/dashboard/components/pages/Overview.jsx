@@ -63,7 +63,7 @@ function DonutChart({ clean, threats, unknown, total }) {
   )
 }
 
-export default function Overview({ history, stats, onNavigate }) {
+export default function Overview({ history, stats, currentScan, onNavigate }) {
   const recent = history.slice(0, 5)
 
   return (
@@ -101,6 +101,22 @@ export default function Overview({ history, stats, onNavigate }) {
           accent="muted"
         />
       </div>
+
+      {/* Active scan banner */}
+      {currentScan?.scanning && (
+        <div className="flex items-center gap-4 px-5 py-4 bg-brand-500/5 border border-brand-500/20 rounded-xl">
+          <div className="relative flex-shrink-0">
+            <div className="w-8 h-8 rounded-full border-2 border-brand-500/20 border-t-brand-500 animate-spin" />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-foreground">Scanning in progress</p>
+            <p className="text-xs text-muted-foreground font-mono">{currentScan.filename}</p>
+          </div>
+          <p className="text-xs text-muted-foreground ml-auto">
+            Querying VirusTotal... this may take up to 90 seconds
+          </p>
+        </div>
+      )}
 
       {/* Recent scans + donut */}
       <div className="grid grid-cols-3 gap-4">

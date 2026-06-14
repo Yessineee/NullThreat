@@ -37,7 +37,7 @@ function exportCSV(history) {
 
 const STATUS_FILTERS = ['all', 'clean', 'threat', 'unknown']
 
-export default function History({ history, onNavigate, onDelete }) {
+export default function History({ history, currentScan, onNavigate, onDelete }) {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
 
@@ -51,6 +51,14 @@ export default function History({ history, onNavigate, onDelete }) {
 
   return (
     <div className="p-6 flex flex-col gap-4">
+      {currentScan?.scanning && (
+        <div className="flex items-center gap-3 px-4 py-3 bg-brand-500/5 border border-brand-500/20 rounded-xl">
+          <div className="w-5 h-5 rounded-full border-2 border-brand-500/20 border-t-brand-500 animate-spin flex-shrink-0" />
+          <p className="text-sm text-foreground">
+            Scanning <span className="font-mono text-brand-500">{currentScan.filename}</span>...
+          </p>
+        </div>
+      )}
       {/* Toolbar */}
       <div className="flex items-center gap-3">
         <div className="flex-1 flex items-center gap-2 bg-secondary border border-border rounded-lg px-3 py-2">

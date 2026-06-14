@@ -34,11 +34,16 @@ chrome.downloads.onChanged.addListener(async (delta) => {
    }
     
 
-  chrome.runtime.sendMessage({
-    type: 'SCAN_STARTED',
+
+  // await chrome.storage.local.set({ currentScan: { scanning: true, filename: getFilename(item) } })
+  await chrome.storage.local.set({ 
+  currentScan: { 
+    scanning: true, 
     filename: getFilename(item),
-  }).catch(() => {}) 
-  notifyScanning(item)
+    startedAt: Date.now()
+  } 
+  })
+  await notifyScanning(item)
   try {
   const scanUrl = item.finalUrl || item.url
 
@@ -51,28 +56,22 @@ chrome.downloads.onChanged.addListener(async (delta) => {
     fileSize: item.fileSize || item.totalBytes,
     ...result,
   })
+  await chrome.storage.local.set({ currentScan: { scanning: false, filename: null } })
 
-  chrome.runtime.sendMessage({
-    type: 'SCAN_COMPLETE',
-    filename: getFilename(item),
-    result,
-  }).catch(() => {})
 
-  notifyResult(item, result)
+  await notifyResult(item, result)
 } catch (err) {
-  chrome.runtime.sendMessage({
-    type: 'SCAN_ERROR',
-    filename: getFilename(item),
-  }).catch(() => {})
+ 
   console.error('Scan failed:', err.message)
   console.error('Full error:', err)
-  notifyError(item)
+  await notifyError(item)
+  await chrome.storage.local.set({ currentScan: { scanning: false, filename: null } })
 }
 })
 
-function notifyScanning(item) {
+async function notifyScanning(item) {
   const filename = getFilename(item)
-  chrome.notifications.create(`scanning-${item.id}`, {
+  await chrome.notifications.create(`scanning-${item.id}`, {
     type: 'basic',
     iconUrl: '/icons/icon48.png',
     title: 'NullThreat: Scanning',
@@ -86,6 +85,7 @@ async function notifyResult(item, result) {
   chrome.notifications.clear(`scanning-${item.id}`)
 
   const { notifyOnClean } = await getSettings()
+
   if (result.status === 'clean' && !notifyOnClean) return
 
 
@@ -100,7 +100,7 @@ async function notifyResult(item, result) {
     },
     unknown: {
       title: 'NullThreat: Unknown File',
-      message: `${filename} is not in VirusTotal database`,
+      message: `${filename} could not be verified - not in VirusTotal database`,
     },
   }
 
@@ -115,13 +115,27 @@ async function notifyResult(item, result) {
   })
 }
 
-function notifyError(item) {
+chrome.notifications.onClicked.addListener(async (notificationId) => {
+  chrome.notifications.clear(notificationId)
+  
+  const dashboardUrl = chrome.runtime.getURL('src/dashboard/dashboard.html')
+  const tabs = await chrome.tabs.query({})
+  const existing = tabs.find(t => t.url === dashboardUrl)
+  if (existing) {
+    chrome.tabs.update(existing.id, { active: true })
+    chrome.windows.update(existing.windowId, { focused: true })
+  } else {
+    chrome.tabs.create({ url: dashboardUrl })
+  }
+})
+
+async function notifyError(item) {
   const filename = getFilename(item)
   chrome.notifications.clear(`scanning-${item.id}`)
-  chrome.notifications.create(`error-${item.id}`, {
+  await chrome.notifications.create(`error-${item.id}`, {
     type: 'basic',
     iconUrl: '/icons/icon48.png',
-    title: 'NullThreat — Scan Failed',
+    title: 'NullThreat: Scan Failed',
     message: `Could not scan ${filename}. Check your API key.`,
     priority: 0,
   })

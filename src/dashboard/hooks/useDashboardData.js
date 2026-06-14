@@ -6,11 +6,14 @@ export function useDashboardData() {
   const [history, setHistory] = useState([])
   const [settings, setSettings] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [currentScan, setCurrentScan] = useState(null)
+
 
   const loadData = useCallback(async () => {
-    const [h, s] = await Promise.all([getScanHistory(), getSettings()])
+    const [h, s, scanState] = await Promise.all([getScanHistory(), getSettings(), chrome.storage.local.get('currentScan')])
     setHistory(h)
     setSettings(s)
+    setCurrentScan(scanState.currentScan || null)
     setLoading(false)
   }, [])
 
@@ -18,25 +21,44 @@ export function useDashboardData() {
     let cancelled = false
 
     async function init() {
-      const [h, s] = await Promise.all([getScanHistory(), getSettings()])
+      const [h, s, scanState] = await Promise.all([getScanHistory(), getSettings(), chrome.storage.local.get('currentScan')])
       if (cancelled) return
       setHistory(h)
       setSettings(s)
+      setCurrentScan(scanState.currentScan || null)
       setLoading(false)
     }
 
-    init()
-
-    const handleMessage = (message) => {
-      if (['SCAN_COMPLETE', 'SCAN_ERROR'].includes(message.type)) {
-        loadData()
-      }
+    async function backgroundRefresh() {
+    const [h, s, scanState] = await Promise.all([getScanHistory(), getSettings(), chrome.storage.local.get('currentScan')
+])
+    if (cancelled) return
+    setHistory(h)
+    setSettings(s)
+    setCurrentScan(scanState.currentScan || null)
+    
     }
 
-    chrome.runtime.onMessage.addListener(handleMessage)
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') backgroundRefresh()
+    }
+
+    const intervalId = setInterval(() => {
+      if (document.visibilityState === 'visible') backgroundRefresh()
+    }, 30000) // 30s for an extension is more appropriate than 60s
+
+    window.addEventListener('focus', backgroundRefresh)
+    document.addEventListener('visibilitychange', onVisibilityChange)
+
+    init()
+
+    
+
     return () => {
       cancelled = true
-      chrome.runtime.onMessage.removeListener(handleMessage)
+      clearInterval(intervalId)
+      window.removeEventListener('focus', backgroundRefresh)
+      document.removeEventListener('visibilitychange', onVisibilityChange)
     }
   }, [loadData])
 
@@ -68,6 +90,7 @@ export function useDashboardData() {
     settings,
     loading,
     stats,
+    currentScan,
     updateSetting,
     clearHistory: handleClearHistory,
     deleteEntry: handleDeleteEntry,

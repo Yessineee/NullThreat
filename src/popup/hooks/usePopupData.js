@@ -18,6 +18,7 @@ export function usePopupData() {
 
   useEffect(() => {
     let cancelled = false
+    let pollInterval = null
 
     async function init() {
       const [s, h] = await Promise.all([getSettings(), getScanHistory()])
@@ -27,29 +28,49 @@ export function usePopupData() {
       setLoading(false)
     }
 
+    async function pollScanState() {
+    const result = await chrome.storage.local.get('currentScan')
+    const current = result.currentScan
+    if (current?.scanning) {
+      setScanning(true)
+      setScanningFile(current.filename)
+    } else {
+      setScanning(false)
+      setScanningFile(null)
+      const h = await getScanHistory()
+      setHistory(h)
+    }
+  }
+
     init()
-
-    const handleMessage = (message) => {
-      if (message.type === 'SCAN_STARTED') {
-        setScanning(true)
-        setScanningFile(message.filename)
-      }
-      if (message.type === 'SCAN_COMPLETE') {
-        setScanning(false)
-        setScanningFile(null)
-        loadData()
-      }
-      if (message.type === 'SCAN_ERROR') {
-        setScanning(false)
-        setScanningFile(null)
-      }
-    }
-
-    chrome.runtime.onMessage.addListener(handleMessage)
+    pollInterval = setInterval(pollScanState, 1000)
     return () => {
-      cancelled = true
-      chrome.runtime.onMessage.removeListener(handleMessage)
-    }
+    cancelled = true
+    clearInterval(pollInterval)
+  }
+
+    // const handleMessage = (message) => {
+    //   if (message.type === 'SCAN_STARTED') {
+    //     setScanning(true)
+    //     setScanningFile(message.filename)
+    //   }
+    //   if (message.type === 'SCAN_COMPLETE') {
+    //     setScanning(false)
+    //     setScanningFile(null)
+    //     loadData()
+    //   }
+    //   if (message.type === 'SCAN_ERROR') {
+    //     setScanning(false)
+    //     setScanningFile(null)
+    //   }
+    // }
+
+    // chrome.runtime.onMessage.addListener(handleMessage)
+    // return () => {
+    //   cancelled = true
+    //   chrome.runtime.onMessage.removeListener(handleMessage)
+    // }
+    
   }, [loadData])
 
   const updateSetting = useCallback(async (key, value) => {
