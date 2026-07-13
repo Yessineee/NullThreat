@@ -1,6 +1,12 @@
-/* global chrome */
 import { useState, useEffect, useCallback } from 'react'
-import { getScanHistory, getSettings, saveSettings, clearHistory, deleteEntry } from '../../storage/store.js'
+import { getScanHistory, getSettings, saveSettings, clearHistory, deleteEntry, getPendingScans,} from '../../storage/store.js'
+
+function deriveCurrentScan(pendingMap) {
+  const jobs = Object.values(pendingMap)
+  if (jobs.length === 0) return null
+  const oldest = jobs.sort((a, b) => a.createdAt - b.createdAt)[0]
+  return { scanning: true, filename: oldest.filename }
+}
 
 export function useDashboardData() {
   const [history, setHistory] = useState([])
@@ -8,12 +14,11 @@ export function useDashboardData() {
   const [loading, setLoading] = useState(true)
   const [currentScan, setCurrentScan] = useState(null)
 
-
   const loadData = useCallback(async () => {
-    const [h, s, scanState] = await Promise.all([getScanHistory(), getSettings(), chrome.storage.local.get('currentScan')])
+    const [h, s, pending] = await Promise.all([getScanHistory(), getSettings(), getPendingScans()])
     setHistory(h)
     setSettings(s)
-    setCurrentScan(scanState.currentScan || null)
+    setCurrentScan(deriveCurrentScan(pending))
     setLoading(false)
   }, [])
 
@@ -21,38 +26,37 @@ export function useDashboardData() {
     let cancelled = false
 
     async function init() {
-      const [h, s, scanState] = await Promise.all([getScanHistory(), getSettings(), chrome.storage.local.get('currentScan')])
+      const [h, s, pending] = await Promise.all([getScanHistory(), getSettings(), getPendingScans()])
       if (cancelled) return
       setHistory(h)
       setSettings(s)
-      setCurrentScan(scanState.currentScan || null)
+      setCurrentScan(deriveCurrentScan(pending))
       setLoading(false)
     }
 
     async function backgroundRefresh() {
-    const [h, s, scanState] = await Promise.all([getScanHistory(), getSettings(), chrome.storage.local.get('currentScan')
-])
-    if (cancelled) return
-    setHistory(h)
-    setSettings(s)
-    setCurrentScan(scanState.currentScan || null)
-    
+      const [h, s, pending] = await Promise.all([getScanHistory(), getSettings(), getPendingScans()])
+      if (cancelled) return
+      setHistory(h)
+      setSettings(s)
+      setCurrentScan(deriveCurrentScan(pending))
     }
 
     const onVisibilityChange = () => {
       if (document.visibilityState === 'visible') backgroundRefresh()
     }
 
+    // Poll every 5s while visible — fast enough to see scan progress,
+    // and derived from storage so it can never get stuck showing a
+    // scan that isn't actually pending anymore.
     const intervalId = setInterval(() => {
       if (document.visibilityState === 'visible') backgroundRefresh()
-    }, 30000) // 30s for an extension is more appropriate than 60s
+    }, 5000)
 
     window.addEventListener('focus', backgroundRefresh)
     document.addEventListener('visibilitychange', onVisibilityChange)
 
     init()
-
-    
 
     return () => {
       cancelled = true
@@ -60,7 +64,7 @@ export function useDashboardData() {
       window.removeEventListener('focus', backgroundRefresh)
       document.removeEventListener('visibilitychange', onVisibilityChange)
     }
-  }, [loadData])
+  }, [])
 
   const updateSetting = useCallback(async (key, value) => {
     const updated = { ...settings, [key]: value }

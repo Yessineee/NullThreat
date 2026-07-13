@@ -1,6 +1,5 @@
-/* global chrome */
 import { useState, useEffect, useCallback } from 'react'
-import { getScanHistory, getSettings, saveSettings } from '../../storage/store.js'
+import { getScanHistory, getSettings, saveSettings, getPendingScans } from '../../storage/store.js'
 
 export function usePopupData() {
   const [settings, setSettings] = useState(null)
@@ -28,50 +27,33 @@ export function usePopupData() {
       setLoading(false)
     }
 
+    // Derives "scanning" live from whatever's actually pending in storage.
+    // Unlike the old currentScan flag, this can't get permanently stuck —
+    // if a job disappears (completed, failed, or timed out) the banner
+    // clears automatically on the next poll, no manual toggling needed.
     async function pollScanState() {
-    const result = await chrome.storage.local.get('currentScan')
-    const current = result.currentScan
-    if (current?.scanning) {
-      setScanning(true)
-      setScanningFile(current.filename)
-    } else {
-      setScanning(false)
-      setScanningFile(null)
-      const h = await getScanHistory()
-      setHistory(h)
+      const pending = await getPendingScans()
+      const jobs = Object.values(pending)
+
+      if (jobs.length > 0) {
+        const oldest = jobs.sort((a, b) => a.createdAt - b.createdAt)[0]
+        setScanning(true)
+        setScanningFile(oldest.filename)
+      } else {
+        setScanning(false)
+        setScanningFile(null)
+        const h = await getScanHistory()
+        if (!cancelled) setHistory(h)
+      }
     }
-  }
 
     init()
     pollInterval = setInterval(pollScanState, 1000)
     return () => {
-    cancelled = true
-    clearInterval(pollInterval)
-  }
-
-    // const handleMessage = (message) => {
-    //   if (message.type === 'SCAN_STARTED') {
-    //     setScanning(true)
-    //     setScanningFile(message.filename)
-    //   }
-    //   if (message.type === 'SCAN_COMPLETE') {
-    //     setScanning(false)
-    //     setScanningFile(null)
-    //     loadData()
-    //   }
-    //   if (message.type === 'SCAN_ERROR') {
-    //     setScanning(false)
-    //     setScanningFile(null)
-    //   }
-    // }
-
-    // chrome.runtime.onMessage.addListener(handleMessage)
-    // return () => {
-    //   cancelled = true
-    //   chrome.runtime.onMessage.removeListener(handleMessage)
-    // }
-    
-  }, [loadData])
+      cancelled = true
+      clearInterval(pollInterval)
+    }
+  }, [])
 
   const updateSetting = useCallback(async (key, value) => {
     const updated = { ...settings, [key]: value }

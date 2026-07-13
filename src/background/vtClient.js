@@ -31,12 +31,16 @@ export async function scanByHash(hash) {
   }
 }
 
-
-export async function scanByUrl(url) {
+/**
+ * Submits a URL to VirusTotal for scanning. Returns the analysis ID.
+ * This is a single fetch — no polling here. Polling is handled
+ * separately (one step at a time) by scanManager.js via chrome.alarms,
+ * so the service worker never has to stay alive for the full analysis.
+ */
+export async function submitUrlForScan(url) {
   const { apiKey } = await getSettings()
   if (!apiKey) throw new Error('No API key configured')
 
-  // First submit the URL for scanning
   const formData = new FormData()
   formData.append('url', url)
 
@@ -49,51 +53,44 @@ export async function scanByUrl(url) {
   if (!submitRes.ok) throw new Error(`VT submit error: ${submitRes.status}`)
 
   const submitData = await submitRes.json()
-  const analysisId = submitData.data.id
-
-  // Poll for result
-  return await pollAnalysis(analysisId, apiKey)
+  return submitData.data.id
 }
 
-async function pollAnalysis(analysisId, apiKey) {
-  const maxAttempts = 20
-  const delayMs = 8000
+/**
+ * Checks the status of a previously submitted analysis exactly once.
+ * Returns { status: 'pending' } if not yet complete, or the full
+ * result object if complete. No internal loop or sleep — the caller
+ * (scanManager.js) decides when to call this again, driven by the
+ * chrome.alarms tick rather than setTimeout.
+ */
+export async function pollAnalysisOnce(analysisId) {
+  const { apiKey } = await getSettings()
+  if (!apiKey) throw new Error('No API key configured')
 
-  for (let i = 0; i < maxAttempts; i++) {
-    await sleep(delayMs)
+  const res = await fetch(`${VT_BASE}/analyses/${analysisId}`, {
+    headers: { 'x-apikey': apiKey },
+  })
 
-    const res = await fetch(`${VT_BASE}/analyses/${analysisId}`, {
-      headers: { 'x-apikey': apiKey },
-    })
+  if (!res.ok) throw new Error(`VT poll error: ${res.status}`)
 
-    if (!res.ok) continue
+  const data = await res.json()
+  const status = data.data.attributes.status
 
-    const data = await res.json()
-    const status = data.data.attributes.status
-
-    if (status !== 'completed') {
-      console.log(`Analysis pending... attempt ${i + 1}`)
-      continue
-    }
-
-    const stats = data.data.attributes.stats
-    const results = data.data.attributes.results
-    const malicious = stats.malicious || 0
-    const total = Object.keys(results).length
-    const threatScore = total > 0 ? Math.round((malicious / total) * 100) : 0
-
-    return {
-      status: malicious > 0 ? 'threat' : 'clean',
-      threatScore,
-      malicious,
-      total,
-      engines: results,
-    }
+  if (status !== 'completed') {
+    return { status: 'pending' }
   }
 
-  return { status: 'unknown', threatScore: 0, malicious: 0, total: 0, engines: {} }
-}
+  const stats = data.data.attributes.stats
+  const results = data.data.attributes.results
+  const malicious = stats.malicious || 0
+  const total = Object.keys(results).length
+  const threatScore = total > 0 ? Math.round((malicious / total) * 100) : 0
 
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms))
+  return {
+    status: malicious > 0 ? 'threat' : 'clean',
+    threatScore,
+    malicious,
+    total,
+    engines: results,
+  }
 }
