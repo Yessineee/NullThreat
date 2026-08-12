@@ -29,7 +29,7 @@ export default function TopBar({ title, subtitle, onRefresh }) {
   }
 
   return (
-    <header className="flex items-center justify-between px-6 py-4 border-b border-border bg-card">
+    <header className="flex items-center justify-between px-6 py-4 border-b border-border bg-card shadow-card dark:shadow-card-dark">
       <div>
         <h1 className="text-base font-semibold text-foreground">{title}</h1>
         {subtitle && <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>}
@@ -37,7 +37,10 @@ export default function TopBar({ title, subtitle, onRefresh }) {
       <div className="flex items-center gap-2">
         <button
           onClick={handleRefresh}
-          className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-all"
+          className={cn(
+            'p-2 rounded-lg transition-all hover:bg-secondary',
+            refreshing ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+          )}
         >
           <RefreshCw className={cn('w-4 h-4', refreshing && 'animate-spin')} />
         </button>

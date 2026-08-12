@@ -61,7 +61,7 @@ export default function Popup() {
   if (loading) {
     return (
       <div className="w-[380px] bg-background flex items-center justify-center py-8">
-        <div className="w-5 h-5 rounded-full border-2 border-brand-500/20 border-t-brand-500 animate-spin" />
+        <div className="w-5 h-5 rounded-full border-2 border-primary/20 border-t-primary animate-spin" />
       </div>
     )
   }
@@ -76,7 +76,6 @@ export default function Popup() {
 
   return (
     <div className="w-[380px] bg-background">
-      {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-border">
         <div className="flex items-center gap-2">
           <img src="/icons/icon48.png" className="w-5 h-5 rounded" alt="NullThreat" />
@@ -94,7 +93,6 @@ export default function Popup() {
       </div>
 
       <div className="px-4 py-3 flex flex-col gap-3">
-        {/* Stats row */}
         <div className="grid grid-cols-2 gap-2">
           <div className="bg-secondary rounded-lg p-3 border border-border shadow-sm">
             <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Total Scanned</p>
@@ -111,13 +109,11 @@ export default function Popup() {
           </div>
         </div>
 
-        {/* Scan status or last result */}
         {scanning
           ? <ScanningState filename={scanningFile} />
           : <LastResult scan={lastScan} />
         }
 
-        {/* Auto-scan toggle */}
         <div className="flex items-center justify-between py-2 border-t border-border">
           <div>
             <p className="text-xs font-medium text-foreground">Auto-scan downloads</p>
@@ -125,7 +121,7 @@ export default function Popup() {
           </div>
           <button
             onClick={() => updateSetting('autoScan', !(settings?.autoScan ?? true))}
-            className="text-brand-500 hover:text-brand-600 transition-colors"
+            className="text-primary hover:text-primary/80 transition-colors"
           >
             {(settings?.autoScan ?? true)
               ? <ToggleRight className="w-8 h-8" />
@@ -134,13 +130,12 @@ export default function Popup() {
           </button>
         </div>
 
-        {/* Open dashboard */}
         <button
           onClick={openDashboard}
           className={cn(
             'w-full flex items-center justify-center gap-2',
             'py-2 rounded-lg text-sm font-medium',
-            'bg-brand-500 text-white hover:bg-brand-600 transition-colors'
+            'bg-primary text-primary-foreground hover:bg-primary/90 transition-colors'
           )}
         >
           <LayoutDashboard className="w-4 h-4" />

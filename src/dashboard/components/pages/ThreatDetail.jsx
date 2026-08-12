@@ -55,7 +55,6 @@ export default function ThreatDetail({ scan, onBack }) {
   const engines = scan.engines || {}
   const engineEntries = Object.entries(engines)
 
-  // Sort: malicious first, then suspicious, then rest
   const sorted = [...engineEntries].sort(([, a], [, b]) => {
     const rank = e => e?.category === 'malicious' ? 0 : e?.category === 'suspicious' ? 1 : 2
     return rank(a) - rank(b)
@@ -69,7 +68,6 @@ export default function ThreatDetail({ scan, onBack }) {
 
   return (
     <div className="p-6 flex flex-col gap-5">
-      {/* Back button */}
       <button
         onClick={onBack}
         className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors w-fit"
@@ -78,8 +76,7 @@ export default function ThreatDetail({ scan, onBack }) {
         Back to History
       </button>
 
-      {/* Header card */}
-      <div className="bg-card border border-border rounded-xl p-5 flex items-start gap-5">
+      <div className="bg-card border border-border rounded-xl p-5 flex items-start gap-5 shadow-card dark:shadow-card-dark">
         <ThreatScore score={scan.threatScore || 0} status={scan.status} size={100} />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3 mb-3">
@@ -140,7 +137,7 @@ export default function ThreatDetail({ scan, onBack }) {
                     href={vtUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center gap-1.5 text-xs font-medium text-brand-400 hover:text-brand-300 underline underline-offset-2 transition-colors"
+                    className="flex items-center gap-1.5 text-xs font-medium text-primary hover:text-primary/80 underline underline-offset-2 transition-colors"
                 >
                     <ExternalLink className="w-3.5 h-3.5" />
                     View on VirusTotal
@@ -151,9 +148,8 @@ export default function ThreatDetail({ scan, onBack }) {
         </div>
       </div>
 
-      {/* Engine breakdown */}
       {engineEntries.length > 0 ? (
-        <div className="bg-card border border-border rounded-xl overflow-hidden">
+        <div className="bg-card border border-border rounded-xl overflow-hidden shadow-card dark:shadow-card-dark">
           <div className="flex items-center justify-between px-4 py-3 border-b border-border">
             <p className="text-sm font-medium text-foreground">
               Engine Breakdown
@@ -192,7 +188,7 @@ export default function ThreatDetail({ scan, onBack }) {
           </div>
         </div>
       ) : (
-        <div className="bg-card border border-border rounded-xl p-8 flex flex-col items-center gap-2">
+        <div className="bg-card border border-border rounded-xl p-8 flex flex-col items-center gap-2 shadow-card dark:shadow-card-dark">
           <ShieldQuestion className="w-8 h-8 text-muted-foreground/40" />
           <p className="text-sm text-muted-foreground">No engine data available</p>
           <p className="text-xs text-muted-foreground/60">This file was not found in VirusTotal's database</p>

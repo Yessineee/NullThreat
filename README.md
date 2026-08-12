@@ -1,8 +1,8 @@
 # NullThreat
 
-> A professional-grade browser extension that automatically scans PDF downloads against VirusTotal's 90+ threat intelligence engines, delivering real-time threat scores and detailed engine breakdowns directly in your browser.
+> A professional-grade browser extension that automatically scans PDF downloads against VirusTotal's 90+ threat intelligence engines, delivering real-time threat scores and detailed engine breakdowns directly in your browser — with a second, independent machine learning detection signal for manual analysis.
 
-![Version](https://img.shields.io/badge/version-1.0.0-22c55e?style=flat-square)
+![Version](https://img.shields.io/badge/version-1.1.0-22c55e?style=flat-square)
 ![Manifest](https://img.shields.io/badge/Manifest-v3-22c55e?style=flat-square)
 ![React](https://img.shields.io/badge/React-18-22c55e?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-22c55e?style=flat-square)
@@ -19,6 +19,10 @@
 |-------------|---------------|
 | ![History](./docs/history.png) | ![Threat Detail](./docs/threat-detail.png) |
 
+| Manual Scan |
+|-------------|
+| ![Manual Scan](./docs/manual-scan.png) |
+
 | Settings |
 |----------|
 | ![Settings](./docs/settings.png) |
@@ -30,6 +34,7 @@
 - **Automatic PDF detection** — listens for browser download events and scans PDF files the moment they complete, with zero manual intervention
 - **Real-time threat scoring** — calculates a 0–100 aggregate threat score based on detection ratios across all VirusTotal engines
 - **Full engine breakdown** — view individual verdicts from 90+ antivirus engines, sorted by severity (malicious → suspicious → clean)
+- **Manual PDF analysis** — upload any local PDF for structural, machine-learning-based classification via a companion API ([pdf-malware-classifier](https://github.com/Yessineee/pdf-malware-classifier)), independent of VirusTotal's signature database
 - **Scan history** — persistent local storage of all past scans, searchable and filterable by status
 - **Export** — download your full scan history as CSV or JSON
 - **Smart notifications** — desktop notifications on scan start and completion, configurable to threat-only mode
@@ -45,41 +50,43 @@
 NullThreat follows a three-layer extension architecture:
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                   Browser Layer                      │
-│         Downloads API · Storage · Tabs API          │
-└──────────────────────┬──────────────────────────────┘
-                       │
-┌──────────────────────▼──────────────────────────────┐
-│                  Extension Core                      │
-│                                                      │
-│  ┌─────────────┐  ┌──────────┐  ┌───────────────┐  │
-│  │ Service     │  │ Popup UI │  │ Dashboard     │  │
-│  │ Worker      │◄─►(React)   │  │ (React SPA)   │  │
-│  │             │  │          │  │               │  │
-│  │ · Download  │  │ · Stats  │  │ · Overview    │  │
-│  │   listener  │  │ · Status │  │ · History     │  │
-│  │ · Scan queue│  │ · Toggle │  │ · Threat      │  │
-│  │ · Messages  │  │          │  │   Detail      │  │
-│  └──────┬──────┘  └──────────┘  │ · Settings    │  │
-│         │                       └───────────────┘  │
-│  ┌──────▼──────┐  ┌──────────┐                     │
-│  │  VT Client  │  │ Storage  │                     │
-│  │  + Queue    │  │ Manager  │                     │
-│  └─────────────┘  └──────────┘                     │
-└──────────────────────┬──────────────────────────────┘
-                       │
-┌──────────────────────▼──────────────────────────────┐
-│               External Services                      │
-│              VirusTotal API v3                       │
-│         /urls · /analyses · /files                  │
-└─────────────────────────────────────────────────────┘
+              ┌─────────────────────────────────────────────────────────────┐
+              │                       Browser Layer                         │
+              │              Downloads API · Storage · Tabs API             │
+              └──────────────────────────┬──────────────────────────────────┘
+                                         │
+                                         ▼
+              ┌─────────────────────────────────────────────────────────────┐
+              │                      Extension Core                         │
+              │                                                             │
+              │  ┌─────────────┐  ┌──────────┐  ┌───────────────────────┐   │
+              │  │ Service     │  │ Popup UI │  │ Dashboard             │   │
+              │  │ Worker      │◄─►(React)   │  │ (React SPA)           │   │
+              │  │             │  │          │  │                       │   │
+              │  │ · Download  │  │ · Stats  │  │ · Overview            │   │
+              │  │   listener  │  │ · Status │  │ · History             │   │
+              │  │ · Scan queue│  │ · Toggle │  │ · Threat Detail       │   │
+              │  │ · Messages  │  │          │  │ · Manual Scan ────────┼───┼──┐
+              │  └──────┬──────┘  └──────────┘  │ · Settings            │   │  │
+              │         │                       └───────────────────────┘   │  │
+              │  ┌──────▼──────┐  ┌──────────┐                              │  │
+              │  │  VT Client  │  │ Storage  │                              │  │
+              │  │  + Queue    │  │ Manager  │                              │  │
+              │  └─────────────┘  └──────────┘                              │  │
+              └─────────────────────────┬───────────────────────────────────┘  │
+                                        │                                      │
+                                        ▼                                      ▼
+              ┌────────────────────────────────────────┐   ┌─────────────────────────────────┐
+              │           VirusTotal API v3            │   │  pdf-malware-classifier (Flask) │
+              │      /urls · /analyses · /files        │   │  Structural ML classification   │
+              └────────────────────────────────────────┘   └─────────────────────────────────┘
 ```
 
 **Key architectural decisions:**
 
 - **Manifest v3 service worker** — ephemeral background script using a `Map` cache to correlate `onCreated` and `onChanged` download events, avoiding the unreliable `chrome.downloads.search` callback pattern
-- **URL-based scanning** — submits the download URL directly to VirusTotal rather than re-fetching the file, bypassing CORS restrictions inherent to extension origins
+- **URL-based automatic scanning** — the automatic download-triggered flow submits the URL directly to VirusTotal rather than re-fetching the file, bypassing CORS restrictions inherent to extension origins
+- **Manual scan as a separate, file-based path** — the Manual Scan page sidesteps the same CORS/`file://` restrictions entirely by using a native file picker (a different browser permission model than a network fetch), sending real file bytes to a companion Flask API for structural ML classification
 - **Stateless popup** — popup reads from `chrome.storage` on every open and listens for runtime messages from the service worker for live scan status
 - **No React Router** — dashboard uses lightweight `useState` routing since popup and dashboard are separate HTML entry points, not a single SPA
 - **Separate entry points** — popup and dashboard each have their own `main.jsx` and HTML file, bundled independently by CRXJS
@@ -98,6 +105,7 @@ NullThreat follows a three-layer extension architecture:
 | Fonts | Inter + JetBrains Mono |
 | Storage | `chrome.storage.local` + `chrome.storage.sync` |
 | Threat intelligence | [VirusTotal API v3](https://developers.virustotal.com/reference/overview) |
+| Structural ML detection | [pdf-malware-classifier](https://github.com/Yessineee/pdf-malware-classifier) (Flask + XGBoost, separate repo) |
 
 ---
 
@@ -139,12 +147,13 @@ npm run build
 2. Enter your VirusTotal API key in the setup screen
 3. Click **Save API Key**
 4. Download any PDF — NullThreat will scan it automatically
+5. Or open the dashboard's **Manual Scan** page to analyze any local PDF via the ML classifier, independent of a download event
 
 ---
 
 ## How It Works
 
-### Scan flow
+### Automatic scan flow
 
 ```
 PDF download starts
@@ -177,7 +186,25 @@ Send runtime message to popup/dashboard
 Show desktop notification
 ```
 
-### Threat score
+### Manual scan flow
+
+```
+User selects a local PDF via the Manual Scan page
+       │
+       ▼
+Real file bytes POSTed to the pdf-malware-classifier API (/scan)
+       │
+       ▼
+Structural feature extraction + XGBoost classification
+       │
+       ▼
+{ prediction, malicious_probability, caveats[] } returned
+       │
+       ▼
+Rendered inline — not persisted to scan history in this version
+```
+
+### Threat score (automatic/VirusTotal flow)
 
 The threat score is a 0–100 integer representing the percentage of VirusTotal engines that flagged the file as malicious:
 
@@ -197,22 +224,23 @@ threatScore = Math.round((maliciousEngines / totalEngines) * 100)
 
 ## Known Limitations
 
-- **URL-only scanning** — NullThreat scans the download URL rather than the file binary. Files downloaded from authenticated or private URLs (university portals, corporate intranets) may not be scannable by VirusTotal.
+- **URL-only automatic scanning** — the automatic download-triggered flow scans the download URL rather than the file binary. Files downloaded from authenticated or private URLs (university portals, corporate intranets) may not be scannable by VirusTotal this way. The Manual Scan feature, which uploads real file bytes to an independent classifier, is not subject to this restriction.
 - **VirusTotal free tier** — limited to 4 requests/minute and 500 requests/day. Heavy usage will exhaust the daily quota.
-- **Scan delay** — URL analysis on VirusTotal takes 30–90 seconds. The extension polls for results during this time.
+- **Scan delay (automatic flow)** — URL analysis on VirusTotal takes 30–90 seconds. The extension polls for results during this time. Manual Scan typically returns in a few seconds once the classifier API is warm (see that project's README for cold-start behavior on its free-tier hosting).
 - **PDF only** — currently limited to PDF files identified by MIME type (`application/pdf`) or URL extension.
-- **No file upload** — unknown files (not in VT's database) cannot be uploaded for a fresh scan due to CORS restrictions on extension origins.
+- **Manual Scan results are not yet persisted** to the shared scan history — they render inline for the current session only. Noted as a roadmap item below.
 
 ---
 
 ## Roadmap
 
-- [ ] **Backend proxy** — lightweight Node.js server to handle file uploads to VirusTotal and MetaDefender, bypassing browser CORS restrictions
-- [ ] **MetaDefender integration** — dual-engine scanning with OPSWAT MetaDefender (5000 req/day free tier) for aggregate threat scoring
+- [x] ~~Backend proxy for file-based scanning~~ — done via the companion [pdf-malware-classifier](https://github.com/Yessineee/pdf-malware-classifier) Flask API and the Manual Scan feature
+- [ ] **Persist Manual Scan results** into the shared scan history and dashboard statistics
 - [ ] **Firefox support** — cross-browser build using `webextension-polyfill`
 - [ ] **Extended file types** — scan `.exe`, `.zip`, `.docx` downloads in addition to PDFs
-- [ ] **Drag and drop scanning** — manual scan trigger from the dashboard without needing to download
+- [ ] **Drag and drop scanning** — drag a file directly onto the Manual Scan page instead of only using the file picker
 - [ ] **Threat history charts** — weekly/monthly scan activity visualization
+- [ ] **Automatic-flow file upload** — investigating whether the same backend-proxy approach used for Manual Scan can be extended to the automatic download-triggered flow, to reduce reliance on URL-only scanning
 
 ---
 

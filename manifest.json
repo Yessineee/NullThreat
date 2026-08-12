@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "description": "Scan PDF downloads with VirusTotal",
   "permissions": ["downloads", "storage", "notifications", "alarms", "tabs"],
-  "host_permissions": ["https://www.virustotal.com/*"],
+  "host_permissions": ["https://www.virustotal.com/*", "https://pdf-malware-classifier.onrender.com/*"],
   "background": {
     "service_worker": "src/background/worker.js",
     "type": "module"

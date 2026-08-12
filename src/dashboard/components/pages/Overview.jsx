@@ -68,18 +68,18 @@ export default function Overview({ history, stats, currentScan, onNavigate }) {
 
   return (
     <div className="p-6 flex flex-col gap-6">
-      {/* Stat cards */}
+      
       <div className="grid grid-cols-4 gap-4">
         <StatCard
           label="Total Scanned"
           value={stats.total}
-          icon={FileText}
-          accent="brand"
+          icon={(props) => <FileText strokeWidth={2.25} {...props} />}
+          accent="muted"
         />
         <StatCard
           label="Threats Found"
           value={stats.threats}
-          icon={ShieldAlert}
+          icon={(props) => <ShieldAlert strokeWidth={2.25} {...props} />}
           accent="threat"
           sub={stats.total > 0
             ? `${Math.round((stats.threats / stats.total) * 100)}% of scans`
@@ -88,7 +88,7 @@ export default function Overview({ history, stats, currentScan, onNavigate }) {
         <StatCard
           label="Clean Files"
           value={stats.clean}
-          icon={ShieldCheck}
+          icon={(props) => <ShieldCheck strokeWidth={2.25} {...props} />}
           accent="brand"
           sub={stats.total > 0
             ? `${Math.round((stats.clean / stats.total) * 100)}% of scans`
@@ -97,16 +97,15 @@ export default function Overview({ history, stats, currentScan, onNavigate }) {
         <StatCard
           label="Unknown"
           value={stats.unknown}
-          icon={ShieldQuestion}
+          icon={(props) => <ShieldQuestion strokeWidth={2.25} {...props} />}
           accent="muted"
         />
       </div>
 
-      {/* Active scan banner */}
       {currentScan?.scanning && (
-        <div className="flex items-center gap-4 px-5 py-4 bg-brand-500/5 border border-brand-500/20 rounded-xl">
+        <div className="flex items-center gap-4 px-5 py-4 bg-primary/5 border border-primary/20 rounded-xl">
           <div className="relative flex-shrink-0">
-            <div className="w-8 h-8 rounded-full border-2 border-brand-500/20 border-t-brand-500 animate-spin" />
+            <div className="w-8 h-8 rounded-full border-2 border-primary/20 border-t-primary animate-spin" />
           </div>
           <div>
             <p className="text-sm font-medium text-foreground">Scanning in progress</p>
@@ -118,15 +117,13 @@ export default function Overview({ history, stats, currentScan, onNavigate }) {
         </div>
       )}
 
-      {/* Recent scans + donut */}
       <div className="grid grid-cols-3 gap-4">
-        {/* Recent scans */}
-        <div className="col-span-2 bg-card border border-border rounded-xl">
+        <div className="col-span-2 bg-card border border-border rounded-xl shadow-card dark:shadow-card-dark">
           <div className="flex items-center justify-between px-5 py-4 border-b border-border">
             <p className="text-sm font-medium text-foreground">Recent Scans</p>
             <button
               onClick={() => onNavigate('history')}
-              className="text-xs text-brand-500 hover:text-brand-600 transition-colors"
+              className="text-xs text-primary hover:text-primary/80 transition-colors"
             >
               View all →
             </button>
@@ -134,7 +131,7 @@ export default function Overview({ history, stats, currentScan, onNavigate }) {
           <div className="divide-y divide-border">
             {recent.length === 0 ? (
               <div className="flex flex-col items-center gap-2 py-10">
-                <FileText className="w-8 h-8 text-muted-foreground/30" />
+                <FileText strokeWidth={2.25} className="w-8 h-8 text-muted-foreground/30" />
                 <p className="text-sm text-muted-foreground">No scans yet</p>
                 <p className="text-xs text-muted-foreground/60">Download a PDF to get started</p>
               </div>
@@ -164,8 +161,7 @@ export default function Overview({ history, stats, currentScan, onNavigate }) {
           </div>
         </div>
 
-        {/* Threat breakdown */}
-        <div className="bg-card border border-border rounded-xl flex flex-col">
+        <div className="bg-card border border-border rounded-xl flex flex-col shadow-card dark:shadow-card-dark">
           <div className="px-5 py-4 border-b border-border">
             <p className="text-sm font-medium text-foreground">Threat Breakdown</p>
           </div>

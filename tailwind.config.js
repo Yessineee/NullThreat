@@ -40,6 +40,9 @@ export default {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
+        // Status-only. Never used for navigation/interactive
+        // elements -- reserved strictly for "this file/result is
+        // clean or safe" so it always means one thing.
         threat: {
           clean: '#22c55e',
           low: '#84cc16',
@@ -65,6 +68,14 @@ export default {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
+      },
+      boxShadow: {
+        // Subtle elevation for cards -- drop shadows barely read on
+        // a near-black background, so the dark variant leans on a
+        // faint top highlight instead, which is what actually reads
+        // as "raised" against a dark background.
+        card: '0 1px 2px 0 rgb(0 0 0 / 0.05), 0 1px 3px 0 rgb(0 0 0 / 0.08)',
+        'card-dark': 'inset 0 1px 0 0 rgb(255 255 255 / 0.04), 0 4px 14px 0 rgb(0 0 0 / 0.35)',
       },
     },
   },

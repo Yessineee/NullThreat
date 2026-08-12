@@ -17,7 +17,7 @@ function SettingRow({ label, description, children }) {
 
 function Section({ title, children }) {
   return (
-    <div className="bg-card border border-border rounded-xl overflow-hidden">
+    <div className="bg-card border border-border rounded-xl overflow-hidden shadow-card dark:shadow-card-dark">
       <div className="px-5 py-3.5 border-b border-border bg-secondary/50">
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{title}</p>
       </div>
@@ -27,14 +27,18 @@ function Section({ title, children }) {
 }
 
 function Toggle({ checked, onChange }) {
+  const trackWidth = 40
+  const knobSize = 16
+  const inset = 3
+
   return (
     <button
       onClick={() => onChange(!checked)}
       style={{
-        width: '40px',
+        width: `${trackWidth}px`,
         height: '22px',
         borderRadius: '11px',
-        backgroundColor: checked ? '#22c55e' : '#3f3f46',
+        backgroundColor: checked ? 'hsl(var(--primary))' : 'hsl(var(--muted))',
         position: 'relative',
         border: 'none',
         cursor: 'pointer',
@@ -44,10 +48,10 @@ function Toggle({ checked, onChange }) {
     >
       <span style={{
         position: 'absolute',
-        top: '3px',
-        left: checked ? '24px' : '3px',
-        width: '16px',
-        height: '16px',
+        top: `${inset}px`,
+        left: checked ? `${trackWidth - knobSize - inset}px` : `${inset}px`,
+        width: `${knobSize}px`,
+        height: `${knobSize}px`,
         borderRadius: '50%',
         backgroundColor: 'white',
         transition: 'left 0.2s',
@@ -60,7 +64,7 @@ function Toggle({ checked, onChange }) {
 export default function Settings({ settings, updateSetting, clearHistory }) {
   const [editingKey, setEditingKey] = useState(false)
   const [newKey, setNewKey] = useState('')
-  const [testStatus, setTestStatus] = useState(null) // null | 'testing' | 'ok' | 'fail'
+  const [testStatus, setTestStatus] = useState(null)
   const [clearing, setClearing] = useState(false)
   const [confirmClear, setConfirmClear] = useState(false)
 
@@ -116,7 +120,6 @@ export default function Settings({ settings, updateSetting, clearHistory }) {
 
   return (
       <div className="p-6 flex flex-col gap-4 max-w-3xl mx-auto w-full">
-      {/* API Configuration */}
       <Section title="API Configuration">
         <SettingRow
           label="VirusTotal API Key"
@@ -129,11 +132,11 @@ export default function Settings({ settings, updateSetting, clearHistory }) {
                 value={newKey}
                 onChange={e => setNewKey(e.target.value)}
                 placeholder="Paste new API key"
-                className="bg-secondary border border-border rounded-lg px-3 py-1.5 text-xs font-mono text-foreground outline-none focus:border-brand-500 w-48"
+                className="bg-secondary border border-border rounded-lg px-3 py-1.5 text-xs font-mono text-foreground outline-none focus:border-primary w-48"
               />
               <button
                 onClick={handleSaveKey}
-                className="px-3 py-1.5 rounded-lg bg-brand-500 text-white text-xs font-medium hover:bg-brand-600 transition-colors"
+                className="px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 transition-colors"
               >
                 Save
               </button>
@@ -178,7 +181,6 @@ export default function Settings({ settings, updateSetting, clearHistory }) {
         </SettingRow>
       </Section>
 
-      {/* Scan Preferences */}
       <Section title="Scan Preferences">
         <SettingRow
           label="Auto-scan downloads"
@@ -200,7 +202,6 @@ export default function Settings({ settings, updateSetting, clearHistory }) {
         </SettingRow>
       </Section>
 
-      {/* Data Management */}
       <Section title="Data Management">
         <SettingRow
           label="Export history"
@@ -233,26 +234,25 @@ export default function Settings({ settings, updateSetting, clearHistory }) {
         </SettingRow>
       </Section>
 
-      {/* About */}
       <Section title="About">
         <SettingRow label="Version" description="NullThreat Browser Extension">
-          <span className="text-xs font-mono text-muted-foreground">v1.0.0</span>
+          <span className="text-xs font-mono text-muted-foreground">v1.1.0</span>
         </SettingRow>
         <SettingRow label="Source Code" description="View the project on GitHub">
           <a
             href="https://github.com/Yessineee/NullThreat"
             target="_blank"
             rel="noreferrer"
-            className="flex items-center gap-1.5 text-xs text-brand-500 hover:text-brand-600 transition-colors"
+            className="flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 transition-colors"
           >
             <ExternalLink className="w-3.5 h-3.5" />
             GitHub
           </a>
         </SettingRow>
-        <SettingRow label="Powered by" description="Threat intelligence">
+        <SettingRow label="Powered by" description="Threat intelligence & structural ML classification">
           <div className="flex items-center gap-1.5">
             <Info className="w-3.5 h-3.5 text-muted-foreground" />
-            <span className="text-xs text-muted-foreground">VirusTotal API v3</span>
+            <span className="text-xs text-muted-foreground">VirusTotal API v3 · ML Classifier</span>
           </div>
         </SettingRow>
       </Section>

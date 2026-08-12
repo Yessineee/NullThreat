@@ -72,10 +72,7 @@ export async function deletePendingScan(jobId) {
   await chrome.storage.local.set({ [PENDING_SCANS_KEY]: all })
 }
 
-/**
- * VirusTotal call rate limiting — persisted so it survives worker restarts.
- * Free tier allows 4 requests/minute (~15s spacing). We use 16s for margin.
- */
+
 export async function getLastVtCallAt() {
   const result = await chrome.storage.local.get(RATE_LIMIT_KEY)
   return result[RATE_LIMIT_KEY]?.lastCallAt || 0

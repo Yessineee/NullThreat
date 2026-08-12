@@ -27,10 +27,7 @@ export function usePopupData() {
       setLoading(false)
     }
 
-    // Derives "scanning" live from whatever's actually pending in storage.
-    // Unlike the old currentScan flag, this can't get permanently stuck —
-    // if a job disappears (completed, failed, or timed out) the banner
-    // clears automatically on the next poll, no manual toggling needed.
+    
     async function pollScanState() {
       const pending = await getPendingScans()
       const jobs = Object.values(pending)

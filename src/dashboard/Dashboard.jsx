@@ -7,10 +7,12 @@ import Overview from './components/pages/Overview.jsx'
 import History from './components/pages/History.jsx'
 import ThreatDetail from './components/pages/ThreatDetail.jsx'
 import Settings from './components/pages/Settings.jsx'
+import ManualScan from './components/pages/ManualScan.jsx'
 
 const PAGE_META = {
   overview: { title: 'Overview', subtitle: 'Your scan activity at a glance' },
   history: { title: 'Scan History', subtitle: 'All PDF scans with full details' },
+  'manual-scan': { title: 'Manual Scan', subtitle: 'Analyze any local PDF using the machine learning classifier' },
   detail: { title: 'Threat Detail', subtitle: 'Full engine breakdown and file metadata' },
   settings: { title: 'Settings', subtitle: 'Configure NullThreat to your preferences' },
 }
@@ -79,6 +81,7 @@ export default function Dashboard() {
               onBack={() => navigate('history')}
             />
           )}
+          {page === 'manual-scan' && <ManualScan />}
           {page === 'settings' && (
             <Settings
               settings={settings}

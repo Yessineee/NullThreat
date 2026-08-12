@@ -52,10 +52,10 @@ export default function History({ history, currentScan, onNavigate, onDelete }) 
   return (
     <div className="p-6 flex flex-col gap-4">
       {currentScan?.scanning && (
-        <div className="flex items-center gap-3 px-4 py-3 bg-brand-500/5 border border-brand-500/20 rounded-xl">
-          <div className="w-5 h-5 rounded-full border-2 border-brand-500/20 border-t-brand-500 animate-spin flex-shrink-0" />
+        <div className="flex items-center gap-3 px-4 py-3 bg-primary/5 border border-primary/20 rounded-xl">
+          <div className="w-5 h-5 rounded-full border-2 border-primary/20 border-t-primary animate-spin flex-shrink-0" />
           <p className="text-sm text-foreground">
-            Scanning <span className="font-mono text-brand-500">{currentScan.filename}</span>...
+            Scanning <span className="font-mono text-primary">{currentScan.filename}</span>...
           </p>
         </div>
       )}
@@ -72,7 +72,6 @@ export default function History({ history, currentScan, onNavigate, onDelete }) 
           />
         </div>
 
-        {/* Status filter */}
         <div className="flex items-center gap-1 bg-secondary border border-border rounded-lg p-1">
           {STATUS_FILTERS.map(f => (
             <button
@@ -81,7 +80,7 @@ export default function History({ history, currentScan, onNavigate, onDelete }) 
               className={cn(
                 'px-3 py-1 rounded-md text-xs font-medium capitalize transition-all',
                 statusFilter === f
-                  ? 'bg-background text-foreground shadow-sm'
+                  ? 'bg-primary text-primary-foreground shadow-sm'
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >
@@ -100,7 +99,7 @@ export default function History({ history, currentScan, onNavigate, onDelete }) 
       </div>
 
       {/* Table */}
-      <div className="bg-card border border-border rounded-xl overflow-hidden">
+      <div className="bg-card border border-border rounded-xl overflow-hidden shadow-card dark:shadow-card-dark">
         <table className="w-full">
           <thead>
             <tr className="border-b border-border">

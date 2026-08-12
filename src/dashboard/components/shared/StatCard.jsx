@@ -1,7 +1,11 @@
 import { cn } from '../../../lib/utils.js'
 
-export default function StatCard({ label, value, sub, icon: Icon, accent = 'brand' }) {
+export default function StatCard({ label, value, sub, icon: Icon, accent = 'muted' }) {
   const accents = {
+    
+    info: 'border-l-primary text-primary',
+    
+    // Reserve for genuinely positive/safe counts (e.g. "Clean Files").
     brand: 'border-l-brand-500 text-brand-500',
     threat: 'border-l-destructive text-destructive',
     muted: 'border-l-muted-foreground text-muted-foreground',
@@ -11,6 +15,7 @@ export default function StatCard({ label, value, sub, icon: Icon, accent = 'bran
   return (
     <div className={cn(
       'bg-card border border-border rounded-xl p-4 border-l-2',
+      'shadow-card dark:shadow-card-dark',
       accents[accent]
     )}>
       <div className="flex items-start justify-between">
@@ -24,6 +29,7 @@ export default function StatCard({ label, value, sub, icon: Icon, accent = 'bran
         {Icon && (
           <div className={cn(
             'w-8 h-8 rounded-lg flex items-center justify-center',
+            accent === 'info' && 'bg-primary/10',
             accent === 'brand' && 'bg-brand-500/10',
             accent === 'threat' && 'bg-destructive/10',
             accent === 'muted' && 'bg-muted',

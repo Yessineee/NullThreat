@@ -11,16 +11,11 @@ export const SCAN_ALARM_NAME = 'nullthreat-scan-tick'
 const MAX_SCAN_AGE_MS = 6 * 60 * 1000 // 6 minutes
 const MAX_POLL_ATTEMPTS = 25
 
-/**
- * Ensures the recurring alarm exists. Safe to call on every worker wake —
- * it checks first so it doesn't keep resetting the timer.
- *
- * Note: chrome.alarms enforces a 1-minute minimum period for published
- * extensions. Unpacked (developer mode) extensions can use shorter
- * periods, which is what we rely on here since this runs via "Load
- * unpacked". If this is ever published to the Web Store, bump this to
- * 1 minute minimum.
- */
+/* Ensures the recurring alarm exists. Safe to call on every worker wake — it checks first so it doesn't keep resetting the timer.
+  Note: chrome.alarms enforces a 1-minute minimum period for published extensions. Unpacked (developer mode) extensions can use shorter periods, which is what we rely on here since this runs via "Load
+  unpacked". If this is ever published to the Web Store, bump this to 1 minute minimum.
+*/
+
 export async function ensureAlarm() {
   const alarm = await chrome.alarms.get(SCAN_ALARM_NAME)
   if (!alarm) {
@@ -28,10 +23,7 @@ export async function ensureAlarm() {
   }
 }
 
-/**
- * Registers a new scan job from a completed download and kicks off
- * the first step immediately (fast — just the submit fetch).
- */
+/* Registers a new scan job from a completed download and kicks off the first step immediately (fast — just the submit fetch). */
 export async function createScanJob(jobId, { filename, url, fileSize }) {
   const job = {
     filename,
@@ -48,25 +40,18 @@ export async function createScanJob(jobId, { filename, url, fileSize }) {
   await notifyScanning(jobId, filename)
   await ensureAlarm()
 
-  // Kick off the first step right away so it doesn't wait for the
-  // next alarm tick. This is a single short fetch, not a long poll,
-  // so it's safe to await here.
+  
   await runScanTick()
 }
 
-/**
- * Advances the scan queue by exactly one step. Called by the alarm,
- * and also opportunistically after download events. Safe to call
- * frequently — it no-ops quickly if there's nothing to do or if the
- * rate limiter says to wait.
- */
+
 export async function runScanTick() {
   const jobs = await getPendingScans()
   const ids = Object.keys(jobs)
   if (ids.length === 0) return
 
-  // First, resolve any jobs that have been pending too long — this is
-  // what makes the "stuck scanning forever" bug impossible now.
+  // First, resolve any jobs that have been pending too long — this is what makes the "stuck scanning forever" bug impossible now.
+  
   const now = Date.now()
   for (const id of ids) {
     if (now - jobs[id].createdAt > MAX_SCAN_AGE_MS) {

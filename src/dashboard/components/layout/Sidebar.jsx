@@ -1,11 +1,12 @@
 /* global chrome */
 import { useState, useEffect } from 'react'
-import { LayoutDashboard, History, Settings, ChevronLeft, ChevronRight } from 'lucide-react'
+import { LayoutDashboard, History, Settings, ScanSearch, ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '../../../lib/utils.js'
 
 const navItems = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard },
   { id: 'history', label: 'Scan History', icon: History },
+  { id: 'manual-scan', label: 'Manual Scan', icon: ScanSearch },
   { id: 'settings', label: 'Settings', icon: Settings },
 ]
 
@@ -41,7 +42,7 @@ export default function Sidebar({ currentPage, onNavigate }) {
         {!collapsed && (
           <div>
             <p className="text-sm font-semibold text-foreground font-mono">NullThreat</p>
-            <p className="text-[10px] text-muted-foreground">v1.0.0</p>
+            <p className="text-[10px] text-muted-foreground">v1.1.0</p>
           </div>
         )}
       </div>
@@ -56,7 +57,7 @@ export default function Sidebar({ currentPage, onNavigate }) {
               'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all w-full text-left',
               collapsed && 'justify-center px-0',
               currentPage === id
-                ? 'bg-brand-500/10 text-brand-500 font-medium'
+                ? 'bg-primary/10 text-primary font-medium'
                 : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
             )}
           >

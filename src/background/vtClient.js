@@ -31,12 +31,7 @@ export async function scanByHash(hash) {
   }
 }
 
-/**
- * Submits a URL to VirusTotal for scanning. Returns the analysis ID.
- * This is a single fetch — no polling here. Polling is handled
- * separately (one step at a time) by scanManager.js via chrome.alarms,
- * so the service worker never has to stay alive for the full analysis.
- */
+
 export async function submitUrlForScan(url) {
   const { apiKey } = await getSettings()
   if (!apiKey) throw new Error('No API key configured')
@@ -56,13 +51,7 @@ export async function submitUrlForScan(url) {
   return submitData.data.id
 }
 
-/**
- * Checks the status of a previously submitted analysis exactly once.
- * Returns { status: 'pending' } if not yet complete, or the full
- * result object if complete. No internal loop or sleep — the caller
- * (scanManager.js) decides when to call this again, driven by the
- * chrome.alarms tick rather than setTimeout.
- */
+
 export async function pollAnalysisOnce(analysisId) {
   const { apiKey } = await getSettings()
   if (!apiKey) throw new Error('No API key configured')

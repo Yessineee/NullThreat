@@ -46,9 +46,8 @@ export function useDashboardData() {
       if (document.visibilityState === 'visible') backgroundRefresh()
     }
 
-    // Poll every 5s while visible — fast enough to see scan progress,
-    // and derived from storage so it can never get stuck showing a
-    // scan that isn't actually pending anymore.
+    // Poll every 5s while visible — fast enough to see scan progress, and derived from storage so it can never get stuck showing a scan that isn't actually pending anymore.
+    
     const intervalId = setInterval(() => {
       if (document.visibilityState === 'visible') backgroundRefresh()
     }, 5000)

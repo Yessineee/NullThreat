@@ -9,8 +9,7 @@ chrome.downloads.onCreated.addListener((item) => {
 })
 
 chrome.downloads.onChanged.addListener(async (delta) => {
-  // Opportunistic nudge: any download activity is a chance to advance
-  // the pending scan queue, on top of the alarm tick.
+  // Opportunistic nudge: any download activity is a chance to advance the pending scan queue, on top of the alarm tick.
   runScanTick()
 
   if (delta.state?.current !== 'complete') return
@@ -39,9 +38,7 @@ chrome.downloads.onChanged.addListener(async (delta) => {
   })
 })
 
-// Alarm-driven resumable processing — this is what survives service
-// worker restarts. Each tick advances exactly one pending job by one
-// step (submit or poll), rate-limited via storage so it's safe even
+// Alarm-driven resumable processing — this is what survives service worker restarts. Each tick advances exactly one pending job by one step (submit or poll), rate-limited via storage so it's safe even
 // if the worker restarts between ticks.
 chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === SCAN_ALARM_NAME) {
@@ -74,7 +71,5 @@ chrome.notifications.onClicked.addListener(async (notificationId) => {
 })
 
 function getFilename(item) {
-  return item.filename
-    ? item.filename.split('\\').pop().split('/').pop()
-    : (item.finalUrl || item.url).split('/').pop().split('?')[0]
+  return item.filename ? item.filename.split('\\').pop().split('/').pop() : (item.finalUrl || item.url).split('/').pop().split('?')[0]
 }
